@@ -1,0 +1,2 @@
+# ndktest
+android ndk test 
