@@ -1,0 +1,82 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
+
+    defaultConfig {
+        applicationId "com.example.ndk_test"
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        externalNativeBuild {
+            cmake {
+                abiFilters  "arm64-v8a","armeabi-v7a"
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+}
+
+
+// 删除旧文件
+task cleanBuild(type: Delete) {
+    delete "./output/libs/armeabi-v7a", "./output/libs/arm64-v8a"
+}
+//// 拷贝生成文件到目标模块
+//task copyAgoraJar(type: Copy) {
+//    from "./libs/agora-rtc-sdk.jar"
+//    into "./output/libs"
+//}
+//task copyAgoraARMv7(type: Copy) {
+//    from "./src/main/jniLibs/armeabi-v7a/libagora-rtc-sdk.so"
+//    into "./output/libs/armeabi-v7a"
+//}
+//task copyAgoraARMv8(type: Copy) {
+//    from "./src/main/jniLibs/arm64-v8a/libagora-rtc-sdk.so"
+//    into "./output/libs/arm64-v8a"
+//}
+
+//task copyBuildJar(type: Copy) {
+//    from "./build/intermediates/packaged-classes/release/classes.jar"
+//    into "./output/libs"
+//    rename 'classes.jar', 'videoprocess.jar'
+//}
+task copyBuildARMv7(type: Copy) {
+    from "./build/intermediates/cmake/release/obj/armeabi-v7a/libjni-test.so"
+    into "./output/libs/armeabi-v7a"
+}
+task copyBuildARMv8(type: Copy) {
+    from "./build/intermediates/cmake/release/obj/arm64-v8a/libjni-test.so"
+    into "./output/libs/arm64-v8a"
+}
+
+assemble.finalizedBy(cleanBuild)   //执行完assemble后一定要执行 cleanBuild
+build.finalizedBy(copyBuildARMv7, copyBuildARMv8)
